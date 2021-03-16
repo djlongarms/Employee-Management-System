@@ -11,7 +11,10 @@ const manageEmployees = () => {
     choices: [
       'Add a Department',
       'Add an Employee',
-      'Add a Role'
+      'Add a Role',
+      'View Departments',
+      'View Employees',
+      'View Roles'
     ]
   })
     .then(({ action }) => {
@@ -24,6 +27,15 @@ const manageEmployees = () => {
           break
         case 'Add a Role':
           addRole()
+          break
+        case 'View Departments':
+          viewDepartments()
+          break
+        case 'View Employees':
+          viewEmployees()
+          break
+        case 'View Roles':
+          viewRoles()
           break
       }
     })
@@ -141,6 +153,24 @@ const addRole = () => {
         })
         .catch(err => console.log(err))
     })
+  })
+}
+
+const viewDepartments = () => {
+  db.query('SELECT name FROM departments', (err, departments) => {
+    console.table(departments)
+  })
+}
+
+const viewEmployees = () => {
+  db.query('SELECT first_name FROM employees', (err, employees) => {
+    console.table(employees)
+  })
+}
+
+const viewRoles = () => {
+  db.query('SELECT title FROM roles', (err, roles) => {
+    console.table(roles)
   })
 }
 
