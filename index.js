@@ -53,7 +53,53 @@ const addDepartment = () => {
 }
 
 const addEmployee = () => {
+  db.query('SELECT * FROM roles', (err, roles) => {
+    if (err) console.log(err)
+    db.query('SELECT * FROM employees', (err, employees) => {
+      if (err) console.log(err)
+      inquirer.prompt([
+        {
+          type: 'input',
+          name: 'first_name',
+          message: "What is the new employee's first name?"
+        }, {
+          type: 'input',
+          name: 'last_name',
+          message: "What is the new employee's last name?"
+        }, {
+          type: 'list',
+          name: 'role',
+          message: "What role does this employee have?",
+          choices: roles.map(role => ({
+            name: role.title,
+            value: role.id
+          }))
+        }, {
+          type: 'list',
+          name: 'manager',
+          message: "Who is this employee's manager?",
+          choices: employees.map(employee => employee.first_name).concat(['None'])
+        }
+      ])
+        .then(({ first_name, last_name, role, manager }) => {
 
+          if (manager === 'None') manager = null
+
+          let newEmployee = {
+            first_name: first_name,
+            last_name: last_name,
+            role_id: role,
+            manager_id: manager
+          }
+
+          db.query('INSERT INTO employees SET ?', [newEmployee], err => {
+            if (err) console.log(err)
+            else console.log("Employee Added!")
+          })
+        })
+        .catch(err => console.log(err))
+    })
+  })
 }
 
 const addRole = () => {
