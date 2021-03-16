@@ -78,7 +78,10 @@ const addEmployee = () => {
           type: 'list',
           name: 'manager',
           message: "Who is this employee's manager?",
-          choices: employees.map(employee => employee.first_name).concat(['None'])
+          choices: employees.map(employee => ({
+            name: employee.first_name,
+            value: employee.id
+          })).concat(['None'])
         }
       ])
         .then(({ first_name, last_name, role, manager }) => {
@@ -103,7 +106,42 @@ const addEmployee = () => {
 }
 
 const addRole = () => {
-
+  db.query('SELECT * FROM departments', (err, departments) => {
+    if (err) console.log(err)
+    db.query('SELECT * FROM roles', (err, roles) => {
+      if (err) console.log(err)
+      inquirer.prompt([
+        {
+          type: 'input',
+          name: 'title',
+          message: 'What is the title of the new role?'
+        }, {
+          type: 'float',
+          name: 'salary',
+          message: 'What is the salary for the new role?'
+        }, {
+          type: 'list',
+          name: 'department_id',
+          message: 'What department is the new role under?',
+          choices: departments.map(department => ({
+            name: department.name,
+            value: department.id
+          }))
+        }
+      ])
+        .then(newRole => {
+          if (roles.map(role => role.title).indexOf(newRole.title) === -1) {
+            db.query('INSERT INTO roles SET ?', newRole, err => {
+              if (err) console.log(err)
+              else console.log('Role Added!')
+            })
+          } else {
+              console.log('This role already exists!')
+          }
+        })
+        .catch(err => console.log(err))
+    })
+  })
 }
 
 manageEmployees()
