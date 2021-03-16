@@ -9,7 +9,7 @@ const manageEmployees = () => {
     name: 'action',
     message: 'What would you like to do?',
     choices: [
-      'Add a department',
+      'Add a Department',
       'Add an Employee',
       'Add a Role'
     ]
@@ -31,7 +31,25 @@ const manageEmployees = () => {
 }
 
 const addDepartment = () => {
-
+  db.query('SELECT * FROM departments', (err, departments) => {
+    inquirer.prompt({
+      type: 'input',
+      name: 'name',
+      message: 'What is the name of the new department?'
+    })
+      .then(({ name }) => {
+        if (departments.map(department => department.name).indexOf(name) === -1) 
+        {
+          db.query('INSERT INTO departments SET ?', { name }, err => {
+            if (err) console.log(err)
+            else console.log("Department Added!")
+          })
+        } else {
+          console.log("This department already exists!")
+        }
+      })
+      .catch(err => console.log(err))
+  })
 }
 
 const addEmployee = () => {
