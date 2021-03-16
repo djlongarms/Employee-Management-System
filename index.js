@@ -12,6 +12,7 @@ const manageEmployees = () => {
       'Add a Department',
       'Add an Employee',
       'Add a Role',
+      "Update an Employee's Role",
       'View Departments',
       'View Employees',
       'View Roles'
@@ -27,6 +28,9 @@ const manageEmployees = () => {
           break
         case 'Add a Role':
           addRole()
+          break
+        case "Update an Employee's Role":
+          updateRole()
           break
         case 'View Departments':
           viewDepartments()
@@ -50,8 +54,7 @@ const addDepartment = () => {
       message: 'What is the name of the new department?'
     })
       .then(({ name }) => {
-        if (departments.map(department => department.name).indexOf(name) === -1) 
-        {
+        if (departments.map(department => department.name).indexOf(name) === -1) {
           db.query('INSERT INTO departments SET ?', { name }, err => {
             if (err) console.log(err)
             else console.log("Department Added!")
@@ -59,6 +62,7 @@ const addDepartment = () => {
         } else {
           console.log("This department already exists!")
         }
+        manageEmployees()
       })
       .catch(err => console.log(err))
   })
@@ -110,6 +114,7 @@ const addEmployee = () => {
           db.query('INSERT INTO employees SET ?', [newEmployee], err => {
             if (err) console.log(err)
             else console.log("Employee Added!")
+            manageEmployees()
           })
         })
         .catch(err => console.log(err))
@@ -148,29 +153,71 @@ const addRole = () => {
               else console.log('Role Added!')
             })
           } else {
-              console.log('This role already exists!')
+            console.log('This role already exists!')
           }
+          manageEmployees()
         })
         .catch(err => console.log(err))
     })
   })
 }
 
+const updateRole = () => {
+  db.query('SELECT * FROM employees', (err, employees) => {
+    if (err) console.log(err)
+    inquirer.prompt({
+      type: 'list',
+      name: 'id',
+      message: "Which employee's role do you want to update?",
+      choices: employees.map(employee => ({
+        name: employee.first_name + ' ' + employee.last_name,
+        value: employee.id
+      }))
+    })
+      .then(({ id }) => {
+        db.query('SELECT * FROM roles', (err, roles) => {
+          if (err) console.log(err)
+          inquirer.prompt({
+            type: 'list',
+            name: 'role_id',
+            message: 'What is the new role for this employee?',
+            choices: roles.map(role => ({
+              name: role.title,
+              value: role.id
+            }))
+          })
+            .then(({ role_id }) => {
+              db.query('UPDATE employees SET ? WHERE ?', [{ role_id }, { id }], err => {
+                if (err) console.log(err)
+                console.log('Employee Role Updated!')
+                manageEmployees()
+              })
+            })
+            .catch(err => console.log(err))
+        })
+      })
+      .catch(err => console.log(err))
+  })
+}
+
 const viewDepartments = () => {
   db.query('SELECT name FROM departments', (err, departments) => {
     console.table(departments)
+    manageEmployees()
   })
 }
 
 const viewEmployees = () => {
   db.query('SELECT first_name FROM employees', (err, employees) => {
     console.table(employees)
+    manageEmployees()
   })
 }
 
 const viewRoles = () => {
   db.query('SELECT title FROM roles', (err, roles) => {
     console.table(roles)
+    manageEmployees()
   })
 }
 
