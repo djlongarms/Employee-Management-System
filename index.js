@@ -13,8 +13,10 @@ const manageEmployees = () => {
       'Add an Employee',
       'Add a Role',
       "Update an Employee's Role",
+      "Update an Employee's Manager",
       'View Departments',
       'View Employees',
+      'View Employees by Manager',
       'View Roles'
     ]
   })
@@ -29,6 +31,9 @@ const manageEmployees = () => {
         case 'Add a Role':
           addRole()
           break
+        case "Update an Employee's Manager":
+          updateManager()
+          break
         case "Update an Employee's Role":
           updateRole()
           break
@@ -37,6 +42,9 @@ const manageEmployees = () => {
           break
         case 'View Employees':
           viewEmployees()
+          break
+        case 'View Employees by Manager':
+          viewEmployeesByManager()
           break
         case 'View Roles':
           viewRoles()
@@ -162,6 +170,43 @@ const addRole = () => {
   })
 }
 
+const updateManager = () => {
+  db.query('SELECT * FROM employees', (err, employees) => {
+    if (err) console.log(err)
+    inquirer.prompt({
+      type: 'list',
+      name: 'index',
+      message: "Which employee's manager do you want to update?",
+      choices: employees.map(employee => ({
+        name: employee.first_name + ' ' + employee.last_name,
+        value: employees.indexOf(employee)
+      }))
+    })
+      .then(({ index }) => {
+        inquirer.prompt({
+          type: 'list',
+          name: 'manager_id',
+          message: "Who will this employee's new manager be?",
+          choices: employees.slice(0, index).concat(employees.slice(index + 1)).map(employee => ({
+            name: employee.first_name + " " + employee.last_name,
+            value: employee.id
+            }))
+          })
+            .then(({ manager_id }) => {
+              let id = employees[index].id
+              
+              db.query('UPDATE employees SET ? WHERE ?', [{ manager_id }, { id }], err => {
+                if (err) console.log(err)
+                console.log('Employee Manager Updated!')
+                manageEmployees()
+              })
+            })
+            .catch(err => console.log(err))
+        })
+      .catch(err => console.log(err))
+  })
+}
+
 const updateRole = () => {
   db.query('SELECT * FROM employees', (err, employees) => {
     if (err) console.log(err)
@@ -208,7 +253,11 @@ const viewDepartments = () => {
 }
 
 const viewEmployees = () => {
-  db.query('SELECT first_name FROM employees', (err, employees) => {
+  db.query(
+  `SELECT CONCAT(employees.first_name, ' ', employees.last_name) AS name, roles.title, roles.salary, departments.name AS department, CONCAT(manager.first_name, ' ', manager.last_name) AS manager FROM employees
+  LEFT JOIN roles ON employees.role_id = roles.id
+  LEFT JOIN departments ON roles.department_id = departments.id
+  LEFT JOIN employees manager ON manager.id = employees.manager_id`, (err, employees) => {
     console.table(employees)
     manageEmployees()
   })
