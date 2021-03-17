@@ -190,10 +190,12 @@ const updateManager = () => {
           choices: employees.slice(0, index).concat(employees.slice(index + 1)).map(employee => ({
             name: employee.first_name + " " + employee.last_name,
             value: employee.id
-            }))
+          })).concat(['None'])
           })
             .then(({ manager_id }) => {
               let id = employees[index].id
+
+              if (manager_id === 'None') manager_id = null
               
               db.query('UPDATE employees SET ? WHERE ?', [{ manager_id }, { id }], err => {
                 if (err) console.log(err)
