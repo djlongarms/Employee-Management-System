@@ -263,6 +263,17 @@ const viewEmployees = () => {
   })
 }
 
+const viewEmployeesByManager = () => {
+  db.query(
+    `SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager, CONCAT(employees.first_name, ' ', employees.last_name) AS name, roles.title, roles.salary, departments.name AS department FROM employees
+    LEFT JOIN roles ON employees.role_id = roles.id
+    LEFT JOIN departments ON roles.department_id = departments.id
+    JOIN employees manager ON manager.id = employees.manager_id`, (err, employees) => {
+    console.table(employees)
+    manageEmployees()
+  })
+}
+
 const viewRoles = () => {
   db.query('SELECT title FROM roles', (err, roles) => {
     console.table(roles)
