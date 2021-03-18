@@ -1,4 +1,4 @@
-# Employee-Tracker
+# Employee-Management System
 
 This application is meant to assist in managing employees and their roles and departments in a company.
 
